@@ -78,8 +78,7 @@ playerGetStones p ns max = do
     getInt 1 max (curStonesStr ++ "\n" ++ playerStr) errstr
 
 perfectAI :: PlayerInput
-perfectAI ns max = 
-    if ns < max then return ns else do
+perfectAI ns max = do
         let mp1 = max + 1
         let curMod = ns `mod` mp1
         let ts = if curMod == 0 then max else curMod
