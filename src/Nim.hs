@@ -29,10 +29,10 @@ getNumOrStr st gi ms nne npe = do
                 getNumOrStr st gi ms nne npe
 
 pipn = "Please input a positive number."
-getNumOrEnd :: IO String
-getNumOrEnd = getNumOrStr "end" (>0) ms ms pipn
+getStonesOrEnd :: IO String
+getStonesOrEnd = getNumOrStr "end" (>0) ms ms pipn
     where
-        ms = "Please input a positive number or end to stop the game loop."
+        ms = "Please input the number of stones you wish to start with or end to stop the game loop."
 
 getInt :: Int -> Int -> String -> String -> IO Int
 getInt mn mx msg errstr = do
@@ -40,6 +40,9 @@ getInt mn mx msg errstr = do
     let mxs = show mx
     ns <- getNumOrStr "" (\v -> v>=mn && v<=mx) msg errstr errstr
     if ns == "" then getInt mn mx msg errstr else return (read ns :: Int)
+
+getMax :: Int -> IO Int
+getMax ns = getInt 1 (ns-1) "Please input the max stones a user is allowed to take!" "Please make sure your number is more than zero and less than the number of stones."
 
 nextPlayer :: Int -> Int
 nextPlayer 1 = 2
@@ -49,10 +52,10 @@ nextPlayer x = x
 maxStones = 5
 
 type PlayerInput = (Int -> Int -> IO Int)
-gameLoopWPlayerInputs :: Int -> Int -> PlayerInput -> PlayerInput -> IO ()
-gameLoopWPlayerInputs ns p p1i p2i = do
+gameLoopWPlayerInputs :: Int -> Int -> Int -> PlayerInput -> PlayerInput -> IO ()
+gameLoopWPlayerInputs ns mxs p p1i p2i = do
     let ps = show p
-    let max = min maxStones ns
+    let max = min mxs ns
     let maxs = show max
     let nss = show ns
     if ns <= 0 then do
@@ -62,7 +65,7 @@ gameLoopWPlayerInputs ns p p1i p2i = do
         n <- if p == 1 then p1i ns max else p2i ns max
         let tks = show n
         putStrLn ("Player " ++ ps ++ " took " ++ tks ++ " stones.")
-        gameLoopWPlayerInputs (ns - n) (nextPlayer p) p1i p2i
+        gameLoopWPlayerInputs (ns - n) mxs (nextPlayer p) p1i p2i
 
 playerGetStones :: Int -> PlayerInput
 playerGetStones p ns max = do
@@ -82,11 +85,11 @@ perfectAI ns max =
         let ts = if curMod == 0 then max else curMod
         return ts
 
-gameLoopWPlayers :: Int -> Int -> IO ()
-gameLoopWPlayers ns p = gameLoopWPlayerInputs ns p (playerGetStones 1) (playerGetStones 2)
+gameLoopWPlayers :: Int -> Int -> Int -> IO ()
+gameLoopWPlayers ns mxs p = gameLoopWPlayerInputs ns mxs p (playerGetStones 1) (playerGetStones 2)
 
-gameLoopWAI :: Int  -> IO ()
-gameLoopWAI ns = gameLoopWPlayerInputs ns 1 (playerGetStones 1) perfectAI
+gameLoopWAI :: Int -> Int -> IO ()
+gameLoopWAI ns mxs = gameLoopWPlayerInputs ns mxs 1 (playerGetStones 1) perfectAI
 
-gameLoop2Players :: Int -> IO ()
-gameLoop2Players ns = gameLoopWPlayers ns 1
+gameLoop2Players :: Int -> Int -> IO ()
+gameLoop2Players ns mxs = gameLoopWPlayers ns mxs 1
